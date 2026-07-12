@@ -241,6 +241,84 @@ export default function RootLayout({
             font-size: 24px;
             font-weight: bold;
           }
+
+          .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+          }
+
+          .tab {
+            flex: 1;
+            background-color: white;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+          }
+
+          .tab.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+          }
+
+          .follow-btn {
+            padding: 4px 10px;
+            font-size: 12px;
+            background-color: #007bff;
+            color: white;
+            align-self: center;
+          }
+
+          .follow-btn.following {
+            background-color: transparent;
+            color: #666;
+            border: 1px solid #ddd;
+          }
+
+          .action-btn.active-like {
+            color: #e67e22;
+            border-color: #e67e22;
+          }
+
+          .action-btn.active-repost {
+            color: #28a745;
+            border-color: #28a745;
+          }
+
+          .action-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+          }
+
+          .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+          }
+
+          .comment-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+          }
+
+          .comment-item {
+            display: flex;
+            gap: 8px;
+            padding: 8px 0;
+          }
+
+          .comment-form {
+            margin-top: 10px;
+          }
+
+          .comment-form textarea {
+            width: 100%;
+            margin-bottom: 8px;
+          }
         `}</style>
       </head>
       <body>

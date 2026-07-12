@@ -46,17 +46,24 @@ docker-compose up --build
 - POST `/api/users/register` - ユーザー登録
 - POST `/api/users/login` - ログイン
 - GET `/api/users/:id` - ユーザー情報取得
+- PUT `/api/users/:id` - プロフィール更新（認証必須）
+
+### フォロー
+- POST `/api/users/:id/follow` - フォロー（認証必須）
+- DELETE `/api/users/:id/follow` - フォロー解除（認証必須）
 
 ### 投稿
 - POST `/api/posts` - 投稿作成（認証必須）
-- GET `/api/timeline` - タイムライン取得
+- GET `/api/timeline?type=recommended|following|latest` - タイムライン取得（おすすめ/フォロー中/最新。フォロー中は認証必須）
 - GET `/api/posts/:id` - 投稿詳細取得
 
 ### インタラクション
-- POST `/api/posts/:postId/like` - いいね（認証必須）
-- DELETE `/api/posts/:postId/like` - いいね削除（認証必須）
-- POST `/api/posts/:postId/comments` - コメント作成（認証必須, 575形式）
-- GET `/api/posts/:postId/comments` - コメント一覧取得
+- POST `/api/posts/:postId/like` - 座布団（いいね、認証必須）
+- DELETE `/api/posts/:postId/like` - 座布団削除（認証必須）
+- POST `/api/posts/:postId/repost` - 唱和（リポスト、認証必須）
+- DELETE `/api/posts/:postId/repost` - 唱和解除（認証必須）
+- POST `/api/posts/:postId/comments` - 返し（コメント）作成（認証必須, 575形式）
+- GET `/api/posts/:postId/comments` - 返し一覧取得
 
 ## トラブルシューティング
 

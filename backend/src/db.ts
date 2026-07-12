@@ -41,6 +41,7 @@ export function initializeDatabase(): Promise<void> {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user_id INTEGER NOT NULL,
           content TEXT NOT NULL,
+          furigana TEXT NOT NULL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (user_id) REFERENCES users(id)
         )
@@ -77,6 +78,42 @@ export function initializeDatabase(): Promise<void> {
           post_id INTEGER NOT NULL,
           content TEXT NOT NULL,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id),
+          FOREIGN KEY (post_id) REFERENCES posts(id)
+        )
+      `,
+        (err) => {
+          if (err) reject(err);
+        }
+      );
+
+      // フォロー関係テーブル
+      db.run(
+        `
+        CREATE TABLE IF NOT EXISTS follows (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          follower_id INTEGER NOT NULL,
+          following_id INTEGER NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(follower_id, following_id),
+          FOREIGN KEY (follower_id) REFERENCES users(id),
+          FOREIGN KEY (following_id) REFERENCES users(id)
+        )
+      `,
+        (err) => {
+          if (err) reject(err);
+        }
+      );
+
+      // 唱和（リポスト）テーブル
+      db.run(
+        `
+        CREATE TABLE IF NOT EXISTS reposts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          post_id INTEGER NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(user_id, post_id),
           FOREIGN KEY (user_id) REFERENCES users(id),
           FOREIGN KEY (post_id) REFERENCES posts(id)
         )

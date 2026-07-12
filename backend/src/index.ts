@@ -117,15 +117,72 @@ app.put("/api/users/:id", authenticateToken, (req, res) => {
   );
 });
 
+// ===== フォロー機能 =====
+
+// フォロー
+app.post("/api/users/:id/follow", authenticateToken, (req, res) => {
+  const targetId = parseInt(req.params.id);
+  const followerId = (req as any).userId;
+
+  if (targetId === followerId) {
+    return res.status(400).json({ error: "自分自身をフォローすることはできません" });
+  }
+
+  db.get("SELECT id FROM users WHERE id = ?", [targetId], (err, target) => {
+    if (err || !target) {
+      return res.status(404).json({ error: "対象ユーザーが見つかりません" });
+    }
+
+    db.run(
+      "INSERT INTO follows (follower_id, following_id) VALUES (?, ?)",
+      [followerId, targetId],
+      function (err) {
+        if (err) {
+          return res.status(400).json({ error: "既にフォローしています" });
+        }
+
+        res.json({ message: "フォローしました" });
+      }
+    );
+  });
+});
+
+// フォロー解除
+app.delete("/api/users/:id/follow", authenticateToken, (req, res) => {
+  const targetId = parseInt(req.params.id);
+  const followerId = (req as any).userId;
+
+  db.run(
+    "DELETE FROM follows WHERE follower_id = ? AND following_id = ?",
+    [followerId, targetId],
+    function (err) {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      res.json({ message: "フォローを解除しました" });
+    }
+  );
+});
+
 // ===== 投稿機能 =====
 
 // 投稿作成
 app.post("/api/posts", authenticateToken, (req, res) => {
-  const { content } = req.body;
+  const { content, furigana } = req.body;
   const userId = (req as any).userId;
 
   if (!content) {
     return res.status(400).json({ error: "content is required" });
+  }
+
+  if (!furigana) {
+    return res.status(400).json({ error: "furigana is required" });
+  }
+
+  // ふりがなが20文字以下かチェック
+  if (furigana.length > 20) {
+    return res.status(400).json({ error: "ふりがなは20文字以下である必要があります" });
   }
 
   // 575バリデーション
@@ -135,8 +192,8 @@ app.post("/api/posts", authenticateToken, (req, res) => {
   }
 
   db.run(
-    "INSERT INTO posts (user_id, content) VALUES (?, ?)",
-    [userId, content],
+    "INSERT INTO posts (user_id, content, furigana) VALUES (?, ?, ?)",
+    [userId, content, furigana],
     function (err) {
       if (err) {
         return res.status(400).json({ error: err.message });
@@ -146,40 +203,112 @@ app.post("/api/posts", authenticateToken, (req, res) => {
         id: this.lastID,
         user_id: userId,
         content,
+        furigana,
         created_at: new Date().toISOString(),
       });
     }
   );
 });
 
-// タイムライン取得
-app.get("/api/timeline", (req, res) => {
-  const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
-  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
-
-  db.all(
-    `
-    SELECT 
+// タイムライン取得（おすすめ / フォロー中 / 最新）
+const TIMELINE_SELECT = `
+    SELECT
       p.id,
       p.user_id,
       p.content,
+      p.furigana,
       p.created_at,
       u.username,
       u.avatar_url,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
-      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
+      (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
+      (SELECT COUNT(*) FROM reposts WHERE post_id = p.id) as repost_count,
+      EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = ?) as is_liked,
+      EXISTS(SELECT 1 FROM reposts WHERE post_id = p.id AND user_id = ?) as is_reposted,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = p.user_id) as is_following
     FROM posts p
     JOIN users u ON p.user_id = u.id
-    ORDER BY p.created_at DESC
-    LIMIT ? OFFSET ?
-  `,
-    [limit, offset],
-    (err, posts) => {
+`;
+
+function castTimelineRows(rows: any[]) {
+  return rows.map((row) => ({
+    ...row,
+    is_liked: !!row.is_liked,
+    is_reposted: !!row.is_reposted,
+    is_following: !!row.is_following,
+  }));
+}
+
+app.get("/api/timeline", optionalAuthenticateToken, (req, res) => {
+  const type = (req.query.type as string) || "recommended";
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+  const userId = (req as any).userId as number | null;
+  const userIdParam = userId ?? 0; // 未ログイン時はヒットしないダミー値
+
+  if (type === "following") {
+    if (!userId) {
+      return res.status(401).json({ error: "フォロー中タイムラインの閲覧にはログインが必要です" });
+    }
+
+    db.all(
+      `${TIMELINE_SELECT}
+      WHERE p.user_id IN (SELECT following_id FROM follows WHERE follower_id = ?)
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?`,
+      [userIdParam, userIdParam, userIdParam, userId, limit, offset],
+      (err, posts: any[]) => {
+        if (err) {
+          return res.status(400).json({ error: err.message });
+        }
+        res.json(castTimelineRows(posts));
+      }
+    );
+    return;
+  }
+
+  if (type === "recommended") {
+    const runRecommendedQuery = (withDateFilter: boolean, callback: (err: any, rows: any[]) => void) => {
+      db.all(
+        `${TIMELINE_SELECT}
+        ${withDateFilter ? "WHERE p.created_at >= datetime('now', '-7 days')" : ""}
+        ORDER BY (like_count + repost_count) DESC, p.created_at DESC
+        LIMIT ? OFFSET ?`,
+        [userIdParam, userIdParam, userIdParam, limit, offset],
+        callback
+      );
+    };
+
+    runRecommendedQuery(true, (err, posts: any[]) => {
       if (err) {
         return res.status(400).json({ error: err.message });
       }
+      // 直近7日以内に投稿がない場合は日付フィルタを外して再取得する
+      if (posts.length === 0 && offset === 0) {
+        runRecommendedQuery(false, (err2, posts2: any[]) => {
+          if (err2) {
+            return res.status(400).json({ error: err2.message });
+          }
+          res.json(castTimelineRows(posts2));
+        });
+        return;
+      }
+      res.json(castTimelineRows(posts));
+    });
+    return;
+  }
 
-      res.json(posts);
+  // type === "latest"（既存互換のデフォルト挙動）
+  db.all(
+    `${TIMELINE_SELECT}
+    ORDER BY p.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [userIdParam, userIdParam, userIdParam, limit, offset],
+    (err, posts: any[]) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      res.json(castTimelineRows(posts));
     }
   );
 });
@@ -194,6 +323,7 @@ app.get("/api/posts/:id", (req, res) => {
       p.id,
       p.user_id,
       p.content,
+      p.furigana,
       p.created_at,
       u.username,
       u.avatar_url,
@@ -245,6 +375,40 @@ app.delete("/api/posts/:postId/like", authenticateToken, (req, res) => {
     }
 
     res.json({ message: "Unliked" });
+  });
+});
+
+// ===== 唱和（リポスト）機能 =====
+
+// 唱和
+app.post("/api/posts/:postId/repost", authenticateToken, (req, res) => {
+  const { postId } = req.params;
+  const userId = (req as any).userId;
+
+  db.run(
+    "INSERT INTO reposts (user_id, post_id) VALUES (?, ?)",
+    [userId, postId],
+    function (err) {
+      if (err) {
+        return res.status(400).json({ error: "既に唱和済み、または無効な投稿です" });
+      }
+
+      res.json({ message: "唱和しました" });
+    }
+  );
+});
+
+// 唱和解除
+app.delete("/api/posts/:postId/repost", authenticateToken, (req, res) => {
+  const { postId } = req.params;
+  const userId = (req as any).userId;
+
+  db.run("DELETE FROM reposts WHERE user_id = ? AND post_id = ?", [userId, postId], function (err) {
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+
+    res.json({ message: "唱和を解除しました" });
   });
 });
 
@@ -337,6 +501,22 @@ function authenticateToken(req: express.Request, res: express.Response, next: ex
 
     (req as any).userId = decoded.id;
     (req as any).username = decoded.username;
+    next();
+  });
+}
+
+// JWT認証ミドルウェア（任意）：トークンが無い/不正でも401にせず通過させる
+function optionalAuthenticateToken(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    (req as any).userId = null;
+    return next();
+  }
+
+  jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    (req as any).userId = err ? null : decoded.id;
     next();
   });
 }

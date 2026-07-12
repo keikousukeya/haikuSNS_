@@ -1,0 +1,71 @@
+作業記録 - 575 SNS プロトタイプ
+作成日: 2026-05-16
+
+1. 概要
+Docker Compose を用いてローカルで動作する最小プロトタイプを構築しました。
+フロントエンド: Next.js、バックエンド: Node.js(Express/TypeScript)、DB: SQLite を採用。投稿は575判定を行います（簡易実装）。
+
+2. 実施した作業（主要ポイント）
+- プロジェクト構成を作成: `backend/` と `frontend/` ディレクトリを作成。
+- バックエンド実装（基本API）:
+  - ユーザー登録、ログイン（JWT）、プロフィール更新
+  - 投稿作成（575バリデーション）、タイムライン取得、投稿詳細
+  - いいね（likes）、コメント（comments）機能の簡易実装
+  - SQLite 初期化スクリプト（`db.ts`）を追加
+  - 575判定ロジック（`validateHaiku.ts`）を追加（簡易モーラカウント）
+- フロントエンド実装（最小UI）:
+  - Next.js のシンプルなページでログイン/登録、投稿フォーム、タイムラインを実装
+- Docker 化:
+  - `Dockerfile` を `backend/` と `frontend/` に追加
+  - `docker-compose.yml` を作成して両者を連携
+- 起動・デバッグ対応:
+  - `docker-compose up --build` で起動時に発生したエラーを解析・修正
+  - YAML のインデント不備を修正（`docker-compose.yml` のサービス定義）
+  - TypeScript の型エラー（`jsonwebtoken` の型が見つからない）を回避するために対応を実施
+    - `backend/package.json` に `@types/jsonwebtoken` を追加
+    - `backend/src/custom.d.ts` を追加（`declare module 'jsonwebtoken';`）
+    - `src/index.ts` の `import jwt from 'jsonwebtoken'` を `const jwt: any = require('jsonwebtoken')` に変更
+  - キャッシュ再ビルド（`docker-compose build --no-cache`）と `--force-recreate` で再起動し、正常に起動確認
+
+3. 作成・変更した主なファイル
+- docker-compose.yml
+- README.md
+- .gitignore
+- backend/package.json, tsconfig.json, Dockerfile
+- backend/src/index.ts, db.ts, validateHaiku.ts, custom.d.ts
+- frontend/package.json, tsconfig.json, next.config.js
+- frontend/src/app/layout.tsx, page.tsx
+
+4. 起動方法（ローカル）
+前提: Docker Desktop がインストールされていること。
+
+ターミナルでプロジェクトルートに移動して実行:
+
+```powershell
+docker-compose up --build
+```
+
+アクセス:
+- フロントエンド: http://localhost:3000
+- バックエンドAPI: http://localhost:3001
+
+5. 確認済みの動作
+- Docker 上でフロントエンドとバックエンドが起動し、以下ログを確認:
+  - Backend server running on http://localhost:3001
+  - Connected to SQLite database at: /app/haiku.db
+  - Database tables initialized
+  - Next.js ローカルサーバ起動
+
+6. 注意事項 / 今後の改善点
+- 現在の575判定は簡易実装（形態素解析は未導入）。精度向上には MeCab / Kuromoji 等を導入を推奨。
+- JWT 秘密鍵は `src` 内のハードコード値を `.env` に移動し、環境変数で管理すること。
+- 本番用のセキュリティ（CORS 設定、HTTPS、レート制限、パスワードポリシー、入力サニタイズ等）を追加する必要あり。
+- テスト（ユニット・統合）を追加すること。
+
+7. 次にやること（提案）
+- `JWT_SECRET` を `.env` 化して `docker-compose.yml` 経由で注入
+- 形態素解析（MeCab/Kuromoji）を組み込み、厳密な575判定を実装
+- E2E テストと CI 設定
+
+---
+必要ならこのファイルの内容を英語版にしたり、別フォーマット（Markdown）で出力します。ご希望はありますか？
