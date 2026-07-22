@@ -14,6 +14,7 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
   const [comments, setComments] = useState<Comment[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
+  const [furigana, setFurigana] = useState('');
   const [error, setError] = useState('');
   const [posting, setPosting] = useState(false);
 
@@ -47,11 +48,22 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
       return;
     }
 
+    if (!furigana.trim()) {
+      setError('ふりがなを入力してください');
+      return;
+    }
+
+    if (furigana.length > 30) {
+      setError('ふりがなは30文字以下である必要があります');
+      return;
+    }
+
     setPosting(true);
     try {
-      const newComment = await createComment(postId, content, currentUser.token);
+      const newComment = await createComment(postId, content, furigana, currentUser.token);
       setComments((prev) => [...(prev || []), newComment]);
       setContent('');
+      setFurigana('');
       onCommentAdded();
     } catch (err: any) {
       setError(err.response?.data?.error || '返しの投稿に失敗しました');
@@ -77,6 +89,7 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
             <div style={{ flex: 1 }}>
               <div className="post-username" style={{ fontSize: '0.9em' }}>@{comment.username}</div>
               <div className="post-content" style={{ fontSize: '0.95em' }}>{comment.content}</div>
+              <div style={{ fontSize: '0.8em', color: '#999' }}>ふりがな: {comment.furigana}</div>
             </div>
           </div>
         ))}
@@ -84,14 +97,30 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
       {currentUser ? (
         <form onSubmit={handleSubmit} className="comment-form">
           {error && <div className="error">❌ {error}</div>}
-          <div className="hint">返しの句も「5・7・5」で入力してください</div>
+          <div className="hint">
+            返しの句は漢字OKですが、5・7・5の判定は「ふりがな」で行います。
+            ふりがなをひらがな・カタカナのみでスペース区切りの「5・7・5」で入力してください
+            （字余り・字足らずは各行±1音まで許容されます）
+          </div>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="スペース区切りで「5・7・5」で返す..."
+            placeholder="返しの句を入力（漢字も使えます）..."
             disabled={posting}
             style={{ width: '100%', minHeight: '60px' }}
           />
+          <input
+            type="text"
+            value={furigana}
+            onChange={(e) => setFurigana(e.target.value)}
+            placeholder="ふりがなをスペース区切りで「5・7・5」"
+            maxLength={30}
+            disabled={posting}
+            style={{ width: '100%', marginTop: '8px', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontFamily: 'inherit', fontSize: '1em' }}
+          />
+          <div style={{ marginTop: '4px', marginBottom: '8px', fontSize: '0.85em', color: '#666' }}>
+            {furigana.length}/30
+          </div>
           <button type="submit" disabled={posting}>
             {posting ? '送信中...' : '返す'}
           </button>

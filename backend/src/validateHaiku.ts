@@ -1,5 +1,9 @@
 // 575バリデーション関数
 // シンプルな実装: 文字数ベースでチェック（形態素解析なし）
+// 「字余り」「字足らず」は伝統的な俳句の技法として実際に用いられるため、
+// 各行の音数は目安5・7・5からの誤差を許容範囲内なら合格とする。
+
+const MORA_TOLERANCE = 1; // 各行で許容する目安音数からのズレ（字余り・字足らず）
 
 export function validateHaiku(text: string): { valid: boolean; error?: string } {
   // 前後の空白を除去
@@ -13,30 +17,27 @@ export function validateHaiku(text: string): { valid: boolean; error?: string } 
   // スペース区切りで分解
   const lines = trimmed.split(/\s+/).filter((line) => line.length > 0);
 
-  // 575判定（シンプルモード）
-  if (lines.length === 3) {
-    const counts = lines.map((line) => countMora(line));
-    if (counts[0] === 5 && counts[1] === 7 && counts[2] === 5) {
-      return { valid: true };
-    } else {
-      return {
-        valid: false,
-        error: `五七五になっておりません。現在: ${counts[0]}・${counts[1]}・${counts[2]}`,
-      };
-    }
+  if (lines.length !== 3) {
+    return {
+      valid: false,
+      error: "スペース区切りで「5・7・5」の3つに分けて入力してください",
+    };
   }
 
-  // 全体で17文字チェック
-  const totalMora = countMora(trimmed);
-  if (totalMora <= 17 && totalMora >= 15) {
-    // 厳密でない判定（バリアントとして、ユーザーが575を守らない場合の代替）
-    return { valid: false, error: "スペース区切りで「5・7・5」の形式で投稿してください" };
+  const counts = lines.map((line) => countMora(line));
+  const targets = [5, 7, 5];
+
+  // 各行の音数が目安から許容範囲内に収まっているか（字余り・字足らずを許容）
+  const withinTolerance = counts.every((count, i) => Math.abs(count - targets[i]) <= MORA_TOLERANCE);
+
+  if (!withinTolerance) {
+    return {
+      valid: false,
+      error: `五七五になっておりません。現在: ${counts[0]}・${counts[1]}・${counts[2]}（字余り・字足らずは各行±${MORA_TOLERANCE}音まで許容）`,
+    };
   }
 
-  return {
-    valid: false,
-    error: `投稿は五七五の形式で、スペース区切りで入力してください（現在: ${totalMora}字）`,
-  };
+  return { valid: true };
 }
 
 // モーラ（音節）をカウント

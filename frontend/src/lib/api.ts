@@ -63,10 +63,15 @@ export async function getComments(postId: number): Promise<Comment[]> {
   return res.data;
 }
 
-export async function createComment(postId: number, content: string, token: string): Promise<Comment> {
+export async function createComment(
+  postId: number,
+  content: string,
+  furigana: string,
+  token: string
+): Promise<Comment> {
   const res = await axios.post(
     `${API_URL}/api/posts/${postId}/comments`,
-    { content },
+    { content, furigana },
     { headers: authHeaders(token) }
   );
   return res.data;

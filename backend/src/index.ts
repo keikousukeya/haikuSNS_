@@ -180,13 +180,14 @@ app.post("/api/posts", authenticateToken, (req, res) => {
     return res.status(400).json({ error: "furigana is required" });
   }
 
-  // ふりがなが20文字以下かチェック
-  if (furigana.length > 20) {
-    return res.status(400).json({ error: "ふりがなは20文字以下である必要があります" });
+  // ふりがなが30文字以下かチェック（5・7・5＝17音＋区切りスペース2つ分の余裕）
+  if (furigana.length > 30) {
+    return res.status(400).json({ error: "ふりがなは30文字以下である必要があります" });
   }
 
-  // 575バリデーション
-  const validation = validateHaiku(content);
+  // 575バリデーション（本文は漢字を含み音数を正確に数えられないため、
+  // ユーザーが入力した「ふりがな」を基に判定する）
+  const validation = validateHaiku(furigana);
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
@@ -417,22 +418,32 @@ app.delete("/api/posts/:postId/repost", authenticateToken, (req, res) => {
 // コメント追加
 app.post("/api/posts/:postId/comments", authenticateToken, (req, res) => {
   const { postId } = req.params;
-  const { content } = req.body;
+  const { content, furigana } = req.body;
   const userId = (req as any).userId;
 
   if (!content) {
     return res.status(400).json({ error: "content is required" });
   }
 
-  // コメントも575バリデーション
-  const validation = validateHaiku(content);
+  if (!furigana) {
+    return res.status(400).json({ error: "furigana is required" });
+  }
+
+  // ふりがなが30文字以下かチェック（5・7・5＝17音＋区切りスペース2つ分の余裕）
+  if (furigana.length > 30) {
+    return res.status(400).json({ error: "ふりがなは30文字以下である必要があります" });
+  }
+
+  // コメント（返し）も575バリデーション（本文は漢字を含み音数を正確に数えられないため、
+  // ユーザーが入力した「ふりがな」を基に判定する）
+  const validation = validateHaiku(furigana);
   if (!validation.valid) {
     return res.status(400).json({ error: validation.error });
   }
 
   db.run(
-    "INSERT INTO comments (user_id, post_id, content) VALUES (?, ?, ?)",
-    [userId, postId, content],
+    "INSERT INTO comments (user_id, post_id, content, furigana) VALUES (?, ?, ?, ?)",
+    [userId, postId, content, furigana],
     function (err) {
       if (err) {
         return res.status(400).json({ error: err.message });
@@ -443,6 +454,7 @@ app.post("/api/posts/:postId/comments", authenticateToken, (req, res) => {
         user_id: userId,
         post_id: postId,
         content,
+        furigana,
         created_at: new Date().toISOString(),
       });
     }
@@ -455,10 +467,11 @@ app.get("/api/posts/:postId/comments", (req, res) => {
 
   db.all(
     `
-    SELECT 
+    SELECT
       c.id,
       c.user_id,
       c.content,
+      c.furigana,
       c.created_at,
       u.username,
       u.avatar_url

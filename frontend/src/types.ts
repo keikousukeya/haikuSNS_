@@ -26,6 +26,7 @@ export interface Comment {
   user_id: number;
   post_id: number;
   content: string;
+  furigana: string;
   created_at: string;
   username: string;
   avatar_url: string | null;
