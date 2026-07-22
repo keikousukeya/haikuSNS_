@@ -11,6 +11,7 @@ interface PostCardProps {
   onToggleRepost: (post: Post) => void;
   onToggleFollow: (post: Post) => void;
   onCommentAdded: (postId: number) => void;
+  onOpenProfile: (userId: number) => void;
 }
 
 export default function PostCard({
@@ -20,6 +21,7 @@ export default function PostCard({
   onToggleRepost,
   onToggleFollow,
   onCommentAdded,
+  onOpenProfile,
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [hasOpenedComments, setHasOpenedComments] = useState(false);
@@ -29,9 +31,17 @@ export default function PostCard({
   return (
     <div className="post">
       <div className="post-header">
-        <div className="post-avatar">{post.username.charAt(0).toUpperCase()}</div>
+        <div style={{ cursor: 'pointer' }} onClick={() => onOpenProfile(post.user_id)}>
+          {post.avatar_url ? (
+            <img src={post.avatar_url} alt={post.username} className="avatar-img" style={{ width: 40, height: 40 }} />
+          ) : (
+            <div className="post-avatar">{post.username.charAt(0).toUpperCase()}</div>
+          )}
+        </div>
         <div className="post-info">
-          <div className="post-username">@{post.username}</div>
+          <div className="post-username" style={{ cursor: 'pointer' }} onClick={() => onOpenProfile(post.user_id)}>
+            @{post.username}
+          </div>
           <div className="post-time">{new Date(post.created_at).toLocaleString('ja-JP')}</div>
         </div>
         {canFollow && (

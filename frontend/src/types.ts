@@ -33,3 +33,22 @@ export interface Comment {
 }
 
 export type TimelineType = 'recommended' | 'following' | 'latest';
+
+export interface Profile {
+  id: number;
+  username: string;
+  email?: string; // 本人がアクセスした場合のみ含まれる
+  bio: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  follower_count: number;
+  following_count: number;
+  is_following: boolean;
+}
+
+export interface FollowUser {
+  id: number;
+  username: string;
+  avatar_url: string | null;
+  is_following: boolean;
+}

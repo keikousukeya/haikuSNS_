@@ -319,6 +319,31 @@ export default function RootLayout({
             width: 100%;
             margin-bottom: 8px;
           }
+
+          .avatar-img {
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+          }
+
+          .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+          }
+
+          .follow-list {
+            margin-top: 10px;
+          }
+
+          .follow-list-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+          }
         `}</style>
       </head>
       <body>

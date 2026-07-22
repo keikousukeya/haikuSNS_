@@ -82,16 +82,43 @@ app.post("/api/users/login", (req, res) => {
 });
 
 // ユーザー情報取得
-app.get("/api/users/:id", (req, res) => {
+app.get("/api/users/:id", optionalAuthenticateToken, (req, res) => {
   const { id } = req.params;
+  const viewerId = (req as any).userId as number | null;
+  const viewerIdParam = viewerId ?? 0; // 未ログイン時はヒットしないダミー値
 
-  db.get("SELECT id, username, email, bio, avatar_url, created_at FROM users WHERE id = ?", [id], (err, user) => {
-    if (err || !user) {
-      return res.status(404).json({ error: "User not found" });
+  db.get(
+    `
+    SELECT
+      id, username, bio, avatar_url, created_at,
+      (SELECT COUNT(*) FROM follows WHERE following_id = u.id) as follower_count,
+      (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
+    FROM users u
+    WHERE id = ?
+  `,
+    [viewerIdParam, id],
+    (err, user: any) => {
+      if (err || !user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      user.is_following = !!user.is_following;
+
+      // メールアドレスは本人がアクセスした場合のみ返す（他人からは非公開）
+      if (viewerId === parseInt(id)) {
+        db.get("SELECT email FROM users WHERE id = ?", [id], (err2, row: any) => {
+          if (!err2 && row) {
+            user.email = row.email;
+          }
+          res.json(user);
+        });
+        return;
+      }
+
+      res.json(user);
     }
-
-    res.json(user);
-  });
+  );
 });
 
 // プロフィール更新
@@ -161,6 +188,64 @@ app.delete("/api/users/:id/follow", authenticateToken, (req, res) => {
       }
 
       res.json({ message: "フォローを解除しました" });
+    }
+  );
+});
+
+// フォロワー一覧（:idをフォローしているユーザー一覧）
+app.get("/api/users/:id/followers", optionalAuthenticateToken, (req, res) => {
+  const targetId = parseInt(req.params.id);
+  const viewerId = (req as any).userId as number | null;
+  const viewerIdParam = viewerId ?? 0;
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+
+  db.all(
+    `
+    SELECT u.id, u.username, u.avatar_url,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
+    FROM follows f
+    JOIN users u ON f.follower_id = u.id
+    WHERE f.following_id = ?
+    ORDER BY f.created_at DESC
+    LIMIT ? OFFSET ?
+  `,
+    [viewerIdParam, targetId, limit, offset],
+    (err, rows: any[]) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      res.json(rows.map((row) => ({ ...row, is_following: !!row.is_following })));
+    }
+  );
+});
+
+// フォロー中一覧（:idがフォローしているユーザー一覧）
+app.get("/api/users/:id/following", optionalAuthenticateToken, (req, res) => {
+  const targetId = parseInt(req.params.id);
+  const viewerId = (req as any).userId as number | null;
+  const viewerIdParam = viewerId ?? 0;
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+  const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
+
+  db.all(
+    `
+    SELECT u.id, u.username, u.avatar_url,
+      EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
+    FROM follows f
+    JOIN users u ON f.following_id = u.id
+    WHERE f.follower_id = ?
+    ORDER BY f.created_at DESC
+    LIMIT ? OFFSET ?
+  `,
+    [viewerIdParam, targetId, limit, offset],
+    (err, rows: any[]) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+
+      res.json(rows.map((row) => ({ ...row, is_following: !!row.is_following })));
     }
   );
 });

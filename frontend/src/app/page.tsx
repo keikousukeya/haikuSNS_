@@ -7,6 +7,7 @@ import AuthModal from './components/AuthModal';
 import PostForm from './components/PostForm';
 import TimelineTabs from './components/TimelineTabs';
 import PostCard from './components/PostCard';
+import ProfileModal from './components/ProfileModal';
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -15,6 +16,7 @@ export default function Home() {
   const [showAuth, setShowAuth] = useState(false);
   const [success, setSuccess] = useState('');
   const [timelineError, setTimelineError] = useState('');
+  const [viewingUserId, setViewingUserId] = useState<number | null>(null);
 
   // マウント時にローカルストレージからユーザー情報を復元
   useEffect(() => {
@@ -118,7 +120,9 @@ export default function Home() {
         <div className="auth-section">
           {user ? (
             <>
-              <span>{user.username}</span>
+              <span style={{ cursor: 'pointer' }} onClick={() => setViewingUserId(user.id)}>
+                {user.username}
+              </span>
               <button onClick={handleLogout}>ログアウト</button>
             </>
           ) : (
@@ -164,12 +168,23 @@ export default function Home() {
               onToggleRepost={handleToggleRepost}
               onToggleFollow={handleToggleFollow}
               onCommentAdded={handleCommentAdded}
+              onOpenProfile={setViewingUserId}
             />
           ))
         )}
       </div>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuthenticated={handleAuthenticated} />}
+
+      {viewingUserId !== null && (
+        <ProfileModal
+          userId={viewingUserId}
+          currentUser={user}
+          onClose={() => setViewingUserId(null)}
+          onOpenProfile={setViewingUserId}
+          onFollowChanged={loadTimeline}
+        />
+      )}
     </div>
   );
 }
