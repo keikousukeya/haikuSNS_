@@ -29,6 +29,7 @@ export default function ProfileModal({
   const [listLoading, setListLoading] = useState(false);
 
   const [editing, setEditing] = useState(false);
+  const [displayNameInput, setDisplayNameInput] = useState('');
   const [bioInput, setBioInput] = useState('');
   const [avatarUrlInput, setAvatarUrlInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -46,6 +47,7 @@ export default function ProfileModal({
     getProfile(userId, currentUser?.token)
       .then((data) => {
         setProfile(data);
+        setDisplayNameInput(data.display_name || data.username);
         setBioInput(data.bio || '');
         setAvatarUrlInput(data.avatar_url || '');
       })
@@ -116,9 +118,16 @@ export default function ProfileModal({
     if (!currentUser || !profile) return;
     setError('');
     setSaving(true);
+    const trimmedDisplayName = displayNameInput.trim();
+    if (!trimmedDisplayName) {
+      setError('表示名を入力してください');
+      setSaving(false);
+      return;
+    }
+
     try {
-      await updateProfile(profile.id, bioInput, avatarUrlInput, currentUser.token);
-      setProfile({ ...profile, bio: bioInput, avatar_url: avatarUrlInput });
+      await updateProfile(profile.id, trimmedDisplayName, bioInput, avatarUrlInput, currentUser.token);
+      setProfile({ ...profile, display_name: trimmedDisplayName, bio: bioInput, avatar_url: avatarUrlInput });
       setEditing(false);
     } catch (err: any) {
       setError(err.response?.data?.error || 'プロフィールの更新に失敗しました');
@@ -161,7 +170,8 @@ export default function ProfileModal({
             <div className="profile-header">
               {renderAvatar(profile.avatar_url, profile.username, 56)}
               <div style={{ flex: 1 }}>
-                <div className="post-username">@{profile.username}</div>
+                <div style={{ fontWeight: 'bold' }}>{profile.display_name || profile.username}</div>
+                <div className="post-username" style={{ fontSize: '0.9em' }}>@{profile.username}</div>
                 {!editing && <div style={{ fontSize: '0.9em', color: '#666' }}>{profile.bio || '自己紹介はまだありません'}</div>}
               </div>
               {isOwnProfile && !editing && (
@@ -179,7 +189,16 @@ export default function ProfileModal({
 
             {editing && (
               <form onSubmit={handleSaveProfile} style={{ marginBottom: '16px' }}>
-                <div className="hint">自己紹介とアイコンURLを編集できます</div>
+                <div className="hint">表示名・自己紹介・アイコンURLを編集できます（＠ID「{profile.username}」は変更できません）</div>
+                <input
+                  type="text"
+                  value={displayNameInput}
+                  onChange={(e) => setDisplayNameInput(e.target.value)}
+                  placeholder="表示名"
+                  maxLength={30}
+                  disabled={saving}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontFamily: 'inherit', fontSize: '1em' }}
+                />
                 <textarea
                   value={bioInput}
                   onChange={(e) => setBioInput(e.target.value)}
@@ -204,6 +223,7 @@ export default function ProfileModal({
                     type="button"
                     onClick={() => {
                       setEditing(false);
+                      setDisplayNameInput(profile.display_name || profile.username);
                       setBioInput(profile.bio || '');
                       setAvatarUrlInput(profile.avatar_url || '');
                     }}
@@ -240,7 +260,10 @@ export default function ProfileModal({
                   <div key={u.id} className="follow-list-item">
                     <div style={{ cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }} onClick={() => onOpenProfile(u.id)}>
                       {renderAvatar(u.avatar_url, u.username, 32)}
-                      <span className="post-username" style={{ fontSize: '0.95em' }}>@{u.username}</span>
+                      <div>
+                        <div style={{ fontSize: '0.95em', fontWeight: 'bold' }}>{u.display_name || u.username}</div>
+                        <span className="post-username" style={{ fontSize: '0.85em' }}>@{u.username}</span>
+                      </div>
                     </div>
                     {currentUser && currentUser.id !== u.id && (
                       <button

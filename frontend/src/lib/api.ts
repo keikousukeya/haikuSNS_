@@ -63,10 +63,16 @@ export async function getProfile(userId: number, token?: string): Promise<Profil
   return res.data;
 }
 
-export async function updateProfile(userId: number, bio: string, avatarUrl: string, token: string) {
+export async function updateProfile(
+  userId: number,
+  displayName: string,
+  bio: string,
+  avatarUrl: string,
+  token: string
+) {
   const res = await axios.put(
     `${API_URL}/api/users/${userId}`,
-    { bio, avatar_url: avatarUrl },
+    { display_name: displayName, bio, avatar_url: avatarUrl },
     { headers: authHeaders(token) }
   );
   return res.data;

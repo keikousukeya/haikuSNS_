@@ -39,6 +39,7 @@ export function initializeDatabase(): Promise<void> {
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT UNIQUE NOT NULL,
+          display_name TEXT NOT NULL,
           email TEXT UNIQUE NOT NULL,
           password_hash TEXT NOT NULL,
           bio TEXT,
@@ -146,8 +147,20 @@ export function initializeDatabase(): Promise<void> {
             ensureColumn("comments", "furigana", "TEXT NOT NULL DEFAULT ''", (err2) => {
               if (err2) return reject(err2);
 
-              console.log("Database tables initialized");
-              resolve();
+              ensureColumn("users", "display_name", "TEXT NOT NULL DEFAULT ''", (err3) => {
+                if (err3) return reject(err3);
+
+                // display_name が未設定の既存ユーザーは username で補完する
+                db.run(
+                  `UPDATE users SET display_name = username WHERE display_name = '' OR display_name IS NULL`,
+                  (err4: Error | null) => {
+                    if (err4) return reject(err4);
+
+                    console.log("Database tables initialized");
+                    resolve();
+                  }
+                );
+              });
             });
           });
         }

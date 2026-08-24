@@ -39,7 +39,10 @@ export default function PostCard({
           )}
         </div>
         <div className="post-info">
-          <div className="post-username" style={{ cursor: 'pointer' }} onClick={() => onOpenProfile(post.user_id)}>
+          <div style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={() => onOpenProfile(post.user_id)}>
+            {post.display_name || post.username}
+          </div>
+          <div className="post-username" style={{ cursor: 'pointer', fontSize: '0.9em' }} onClick={() => onOpenProfile(post.user_id)}>
             @{post.username}
           </div>
           <div className="post-time">{new Date(post.created_at).toLocaleString('ja-JP')}</div>
