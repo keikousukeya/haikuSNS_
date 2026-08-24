@@ -33,8 +33,8 @@ app.post("/api/users/register", (req, res) => {
   const passwordHash = bcrypt.hashSync(password, 10);
 
   db.run(
-    "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-    [username, email, passwordHash],
+    "INSERT INTO users (username, display_name, email, password_hash) VALUES (?, ?, ?, ?)",
+    [username, username, email, passwordHash],
     function (err) {
       if (err) {
         return res.status(400).json({ error: "User already exists" });
@@ -44,6 +44,7 @@ app.post("/api/users/register", (req, res) => {
       res.json({
         id: this.lastID,
         username,
+        display_name: username,
         email,
         token,
       });
@@ -75,6 +76,7 @@ app.post("/api/users/login", (req, res) => {
     res.json({
       id: user.id,
       username: user.username,
+      display_name: user.display_name,
       email: user.email,
       token,
     });
@@ -90,7 +92,7 @@ app.get("/api/users/:id", optionalAuthenticateToken, (req, res) => {
   db.get(
     `
     SELECT
-      id, username, bio, avatar_url, created_at,
+      id, username, display_name, bio, avatar_url, created_at,
       (SELECT COUNT(*) FROM follows WHERE following_id = u.id) as follower_count,
       (SELECT COUNT(*) FROM follows WHERE follower_id = u.id) as following_count,
       EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
@@ -124,16 +126,24 @@ app.get("/api/users/:id", optionalAuthenticateToken, (req, res) => {
 // プロフィール更新
 app.put("/api/users/:id", authenticateToken, (req, res) => {
   const { id } = req.params;
-  const { bio, avatar_url } = req.body;
+  const { display_name, bio, avatar_url } = req.body;
   const authUserId = (req as any).userId;
 
   if (parseInt(id) !== authUserId) {
     return res.status(403).json({ error: "Unauthorized" });
   }
 
+  const trimmedDisplayName = typeof display_name === "string" ? display_name.trim() : "";
+  if (!trimmedDisplayName) {
+    return res.status(400).json({ error: "表示名を入力してください" });
+  }
+  if (trimmedDisplayName.length > 30) {
+    return res.status(400).json({ error: "表示名は30文字以下である必要があります" });
+  }
+
   db.run(
-    "UPDATE users SET bio = ?, avatar_url = ? WHERE id = ?",
-    [bio || null, avatar_url || null, id],
+    "UPDATE users SET display_name = ?, bio = ?, avatar_url = ? WHERE id = ?",
+    [trimmedDisplayName, bio || null, avatar_url || null, id],
     function (err) {
       if (err) {
         return res.status(400).json({ error: err.message });
@@ -202,7 +212,7 @@ app.get("/api/users/:id/followers", optionalAuthenticateToken, (req, res) => {
 
   db.all(
     `
-    SELECT u.id, u.username, u.avatar_url,
+    SELECT u.id, u.username, u.display_name, u.avatar_url,
       EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
     FROM follows f
     JOIN users u ON f.follower_id = u.id
@@ -231,7 +241,7 @@ app.get("/api/users/:id/following", optionalAuthenticateToken, (req, res) => {
 
   db.all(
     `
-    SELECT u.id, u.username, u.avatar_url,
+    SELECT u.id, u.username, u.display_name, u.avatar_url,
       EXISTS(SELECT 1 FROM follows WHERE follower_id = ? AND following_id = u.id) as is_following
     FROM follows f
     JOIN users u ON f.following_id = u.id
@@ -305,6 +315,7 @@ const TIMELINE_SELECT = `
       p.furigana,
       p.created_at,
       u.username,
+      u.display_name,
       u.avatar_url,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count,
@@ -412,6 +423,7 @@ app.get("/api/posts/:id", (req, res) => {
       p.furigana,
       p.created_at,
       u.username,
+      u.display_name,
       u.avatar_url,
       (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as like_count,
       (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comment_count
@@ -559,6 +571,7 @@ app.get("/api/posts/:postId/comments", (req, res) => {
       c.furigana,
       c.created_at,
       u.username,
+      u.display_name,
       u.avatar_url
     FROM comments c
     JOIN users u ON c.user_id = u.id

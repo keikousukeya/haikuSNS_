@@ -87,7 +87,8 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
               {comment.username.charAt(0).toUpperCase()}
             </div>
             <div style={{ flex: 1 }}>
-              <div className="post-username" style={{ fontSize: '0.9em' }}>@{comment.username}</div>
+              <div style={{ fontSize: '0.9em', fontWeight: 'bold' }}>{comment.display_name || comment.username}</div>
+              <div className="post-username" style={{ fontSize: '0.85em' }}>@{comment.username}</div>
               <div className="post-content" style={{ fontSize: '0.95em' }}>{comment.content}</div>
               <div style={{ fontSize: '0.8em', color: '#999' }}>ふりがな: {comment.furigana}</div>
             </div>

@@ -121,7 +121,7 @@ export default function Home() {
           {user ? (
             <>
               <span style={{ cursor: 'pointer' }} onClick={() => setViewingUserId(user.id)}>
-                {user.username}
+                {user.display_name || user.username}
               </span>
               <button onClick={handleLogout}>ログアウト</button>
             </>

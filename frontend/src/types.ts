@@ -1,6 +1,7 @@
 export interface User {
   id: number;
   username: string;
+  display_name: string;
   email: string;
   token: string;
 }
@@ -12,6 +13,7 @@ export interface Post {
   furigana: string;
   created_at: string;
   username: string;
+  display_name: string;
   avatar_url: string | null;
   like_count: number;
   comment_count: number;
@@ -29,6 +31,7 @@ export interface Comment {
   furigana: string;
   created_at: string;
   username: string;
+  display_name: string;
   avatar_url: string | null;
 }
 
@@ -37,6 +40,7 @@ export type TimelineType = 'recommended' | 'following' | 'latest';
 export interface Profile {
   id: number;
   username: string;
+  display_name: string;
   email?: string; // 本人がアクセスした場合のみ含まれる
   bio: string | null;
   avatar_url: string | null;
@@ -49,6 +53,7 @@ export interface Profile {
 export interface FollowUser {
   id: number;
   username: string;
+  display_name: string;
   avatar_url: string | null;
   is_following: boolean;
 }
