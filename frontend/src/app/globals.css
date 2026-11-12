@@ -1,0 +1,709 @@
+/* ==========================================================
+   575 SNS 和風テーマ
+   和紙の地色に墨の文字、朱の落款、藍の差し色を基調とする
+   ========================================================== */
+
+:root {
+  /* 地色（和紙） */
+  --washi: #f3eee1;
+  --kinari: #fbf8ef;
+  --shiro: #fffdf7;
+
+  /* 墨 */
+  --sumi: #2a2623;
+  --sumi-usu: #6b635a;
+  --nezu: #9a9187;
+
+  /* 罫線 */
+  --line: #d9cfbc;
+  --line-usu: #e8e0cf;
+
+  /* 差し色 */
+  --shu: #b7382c; /* 朱 */
+  --shu-koi: #96281f;
+  --ai: #2c4a6b; /* 藍 */
+  --ai-koi: #1f3650;
+  --matcha: #5f7a3a; /* 抹茶 */
+
+  --font-mincho: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif JP', serif;
+  --font-gothic: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'YuGothic', 'Noto Sans JP', 'Meiryo', sans-serif;
+
+  --radius: 3px;
+  --shadow: 0 1px 2px rgba(42, 38, 35, 0.06), 0 4px 14px rgba(42, 38, 35, 0.05);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-gothic);
+  background-color: var(--washi);
+  /* 和紙の繊維感を出す微細なノイズ */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--sumi);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+h1,
+h2 {
+  font-family: var(--font-mincho);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+/* ---------- ボタン ---------- */
+
+button {
+  cursor: pointer;
+  border: 1px solid var(--ai);
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  background-color: var(--ai);
+  color: var(--shiro);
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--ai-koi);
+  border-color: var(--ai-koi);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.clickable:focus-visible {
+  outline: 2px solid var(--shu);
+  outline-offset: 2px;
+}
+
+/* 枠線のみの控えめなボタン */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--sumi-usu);
+  border-color: var(--line);
+}
+
+.btn-ghost:hover {
+  background-color: var(--line-usu);
+  border-color: var(--nezu);
+  color: var(--sumi);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ---------- 入力欄 ---------- */
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background-color: var(--shiro);
+  color: var(--sumi);
+  font-family: inherit;
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--ai);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--nezu);
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.8;
+}
+
+/* 句を入力する欄は明朝体で */
+.haiku-input {
+  font-family: var(--font-mincho);
+  font-size: 17px;
+  letter-spacing: 0.1em;
+}
+
+.field-count {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  color: var(--nezu);
+  text-align: right;
+}
+
+/* ---------- 汎用 ---------- */
+
+.clickable {
+  cursor: pointer;
+}
+
+.muted {
+  font-size: 13px;
+  color: var(--nezu);
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.hint {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--sumi-usu);
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 2px solid var(--line);
+}
+
+.error,
+.success {
+  font-size: 13px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border-left: 3px solid;
+}
+
+.error {
+  color: var(--shu-koi);
+  background-color: rgba(183, 56, 44, 0.08);
+  border-color: var(--shu);
+}
+
+.success {
+  color: #44592a;
+  background-color: rgba(95, 122, 58, 0.1);
+  border-color: var(--matcha);
+}
+
+/* ---------- ヘッダー ---------- */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--kinari);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* 落款（朱印）風のロゴ */
+.brand-seal {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--shu);
+  color: var(--kinari);
+  font-family: var(--font-mincho);
+  font-size: 22px;
+  font-weight: 700;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 2px var(--shu), inset 0 0 0 3px rgba(251, 248, 239, 0.6);
+}
+
+.header h1 {
+  font-size: 20px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  font-family: var(--font-mincho);
+  font-size: 11px;
+  color: var(--sumi-usu);
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+}
+
+/* 青海波の帯 */
+.header-wave {
+  height: 10px;
+  background-color: var(--kinari);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Cg fill='%23fbf8ef' stroke='%232c4a6b' stroke-opacity='0.35' stroke-width='1'%3E%3Ccircle cx='20' cy='0' r='20'/%3E%3Ccircle cx='20' cy='0' r='13'/%3E%3Ccircle cx='20' cy='0' r='6'/%3E%3Ccircle cx='0' cy='10' r='20'/%3E%3Ccircle cx='0' cy='10' r='13'/%3E%3Ccircle cx='0' cy='10' r='6'/%3E%3Ccircle cx='40' cy='10' r='20'/%3E%3Ccircle cx='40' cy='10' r='13'/%3E%3Ccircle cx='40' cy='10' r='6'/%3E%3Ccircle cx='20' cy='20' r='20'/%3E%3Ccircle cx='20' cy='20' r='13'/%3E%3Ccircle cx='20' cy='20' r='6'/%3E%3Ccircle cx='0' cy='30' r='20'/%3E%3Ccircle cx='0' cy='30' r='13'/%3E%3Ccircle cx='0' cy='30' r='6'/%3E%3Ccircle cx='40' cy='30' r='20'/%3E%3Ccircle cx='40' cy='30' r='13'/%3E%3Ccircle cx='40' cy='30' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 20px 10px;
+  border-top: 1px solid var(--line-usu);
+}
+
+.auth-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.auth-section button {
+  padding: 6px 14px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.auth-name {
+  font-family: var(--font-mincho);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.auth-name:hover {
+  border-color: var(--shu);
+}
+
+/* ---------- 投稿フォーム ---------- */
+
+.post-form {
+  background-color: var(--kinari);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--shu);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+
+.post-form h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.post-form textarea {
+  height: 84px;
+  margin-bottom: 10px;
+}
+
+/* ---------- タブ ---------- */
+
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  flex: 1;
+  background-color: transparent;
+  color: var(--nezu);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  margin-bottom: -1px;
+  padding: 10px 4px;
+  font-family: var(--font-mincho);
+  font-size: 15px;
+  letter-spacing: 0.15em;
+}
+
+.tab:hover {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--sumi);
+}
+
+.tab.active {
+  color: var(--sumi);
+  font-weight: 700;
+  border-bottom-color: var(--shu);
+}
+
+/* ---------- 投稿（短冊） ---------- */
+
+.post {
+  background-color: var(--kinari);
+  padding: 18px 20px 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.post-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+/* 落款風のアイコン */
+.post-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background-color: var(--shu);
+  box-shadow: inset 0 0 0 2px var(--shu), inset 0 0 0 3px rgba(251, 248, 239, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--kinari);
+  font-family: var(--font-mincho);
+  font-weight: 700;
+}
+
+.avatar-img {
+  border-radius: 5px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  display: block;
+}
+
+.post-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-name {
+  font-family: var(--font-mincho);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  overflow-wrap: anywhere;
+}
+
+.post-username {
+  font-size: 12px;
+  color: var(--sumi-usu);
+  overflow-wrap: anywhere;
+}
+
+.post-time {
+  font-size: 11px;
+  color: var(--nezu);
+}
+
+/* ---------- 句の縦書き表示 ---------- */
+
+.haiku-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 22px 0 20px;
+  overflow-x: auto;
+}
+
+.haiku {
+  writing-mode: vertical-rl;
+  font-family: var(--font-mincho);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 2.3;
+  letter-spacing: 0.16em;
+  max-height: 15em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.haiku-ku {
+  display: block;
+}
+
+/* 散らし書き風に、句ごとに書き出しを下げる */
+.haiku-ku:nth-child(2) {
+  margin-top: 1.5em;
+}
+
+.haiku-ku:nth-child(n + 3) {
+  margin-top: 3em;
+}
+
+.haiku rt {
+  font-family: var(--font-gothic);
+  font-size: 0.42em;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--nezu);
+}
+
+.haiku-small {
+  font-size: 17px;
+}
+
+.haiku-wrap-small {
+  padding: 10px 0;
+  justify-content: flex-start;
+}
+
+.haiku-yomi {
+  text-align: center;
+  font-size: 12px;
+  color: var(--nezu);
+  margin-bottom: 12px;
+}
+
+/* ---------- 投稿のアクション ---------- */
+
+.post-actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--line-usu);
+  padding-top: 12px;
+}
+
+.action-btn {
+  flex: 1;
+  background-color: transparent;
+  color: var(--sumi-usu);
+  border: 1px solid var(--line);
+  padding: 7px 4px;
+  font-family: var(--font-mincho);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: var(--line-usu);
+  border-color: var(--nezu);
+  color: var(--sumi);
+}
+
+.action-btn:disabled:hover {
+  background-color: transparent;
+  border-color: var(--line);
+}
+
+.action-count {
+  margin-left: 6px;
+  font-family: var(--font-gothic);
+  font-variant-numeric: tabular-nums;
+}
+
+.action-btn.active-like,
+.action-btn.active-like:hover:not(:disabled) {
+  color: var(--shu);
+  border-color: var(--shu);
+  background-color: rgba(183, 56, 44, 0.06);
+}
+
+.action-btn.active-repost,
+.action-btn.active-repost:hover:not(:disabled) {
+  color: var(--matcha);
+  border-color: var(--matcha);
+  background-color: rgba(95, 122, 58, 0.08);
+}
+
+.follow-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  align-self: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.follow-btn.following {
+  background-color: transparent;
+  color: var(--sumi-usu);
+  border-color: var(--line);
+}
+
+.follow-btn.following:hover {
+  background-color: var(--line-usu);
+}
+
+.empty-state {
+  text-align: center;
+  font-family: var(--font-mincho);
+  color: var(--sumi-usu);
+  letter-spacing: 0.1em;
+  padding: 56px 20px;
+}
+
+.empty-state button {
+  margin-top: 16px;
+}
+
+/* ---------- 返し（コメント） ---------- */
+
+.comment-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.comment-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-usu);
+}
+
+.comment-item .post-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+}
+
+.comment-form {
+  margin-top: 14px;
+}
+
+.comment-form textarea {
+  min-height: 60px;
+  margin-bottom: 8px;
+}
+
+/* ---------- モーダル ---------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(42, 38, 35, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  background-color: var(--kinari);
+  padding: 28px 26px;
+  border-top: 3px solid var(--shu);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(42, 38, 35, 0.3);
+}
+
+.modal-content h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.modal-content form input,
+.modal-content form textarea {
+  margin-bottom: 12px;
+}
+
+.modal-content form {
+  margin-bottom: 10px;
+}
+
+.modal-close {
+  cursor: pointer;
+  color: var(--nezu);
+  float: right;
+  font-size: 24px;
+  line-height: 1;
+  margin: -8px -6px 0 8px;
+}
+
+.modal-close:hover {
+  color: var(--shu);
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- プロフィール ---------- */
+
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.profile-header .post-avatar {
+  font-size: 26px;
+}
+
+.profile-bio {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--sumi-usu);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.follow-list {
+  margin-top: 10px;
+}
+
+.follow-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-usu);
+}
+
+.follow-list-user {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.follow-list-user .post-avatar {
+  font-size: 14px;
+}
+
+/* ---------- 狭い画面 ---------- */
+
+@media (max-width: 480px) {
+  .brand-sub {
+    display: none;
+  }
+
+  .haiku {
+    font-size: 20px;
+  }
+
+  .post {
+    padding: 16px 14px 12px;
+  }
+
+  .action-btn {
+    font-size: 12px;
+  }
+}

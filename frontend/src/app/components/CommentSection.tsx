@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createComment, getComments } from '../../lib/api';
 import { Comment, User } from '../../types';
+import HaikuText from './HaikuText';
 
 interface CommentSectionProps {
   postId: number;
@@ -74,41 +75,36 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
 
   return (
     <div className="comment-section">
-      {loading && <div style={{ fontSize: '0.85em', color: '#999' }}>読み込み中...</div>}
+      {loading && <div className="muted">読み込み中...</div>}
 
-      {comments && comments.length === 0 && (
-        <div style={{ fontSize: '0.85em', color: '#999' }}>まだ返しがありません</div>
-      )}
+      {comments && comments.length === 0 && <div className="muted">まだ返しがありません</div>}
 
       {comments &&
         comments.map((comment) => (
           <div key={comment.id} className="comment-item">
-            <div className="post-avatar" style={{ width: '28px', height: '28px', fontSize: '0.8em' }}>
-              {comment.username.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.9em', fontWeight: 'bold' }}>{comment.display_name || comment.username}</div>
-              <div className="post-username" style={{ fontSize: '0.85em' }}>@{comment.username}</div>
-              <div className="post-content" style={{ fontSize: '0.95em' }}>{comment.content}</div>
-              <div style={{ fontSize: '0.8em', color: '#999' }}>ふりがな: {comment.furigana}</div>
+            <div className="post-avatar">{comment.username.charAt(0).toUpperCase()}</div>
+            <div className="post-info">
+              <div className="post-name">{comment.display_name || comment.username}</div>
+              <div className="post-username">@{comment.username}</div>
+              <HaikuText content={comment.content} furigana={comment.furigana} small />
             </div>
           </div>
         ))}
 
       {currentUser ? (
         <form onSubmit={handleSubmit} className="comment-form">
-          {error && <div className="error">❌ {error}</div>}
+          {error && <div className="error">{error}</div>}
           <div className="hint">
             返しの句は漢字OKですが、5・7・5の判定は「ふりがな」で行います。
             ふりがなをひらがな・カタカナのみでスペース区切りの「5・7・5」で入力してください
             （字余り・字足らずは各行±1音まで許容されます）
           </div>
           <textarea
+            className="haiku-input"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="返しの句を入力（漢字も使えます）..."
             disabled={posting}
-            style={{ width: '100%', minHeight: '60px' }}
           />
           <input
             type="text"
@@ -117,17 +113,14 @@ export default function CommentSection({ postId, currentUser, onCommentAdded }: 
             placeholder="ふりがなをスペース区切りで「5・7・5」"
             maxLength={30}
             disabled={posting}
-            style={{ width: '100%', marginTop: '8px', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontFamily: 'inherit', fontSize: '1em' }}
           />
-          <div style={{ marginTop: '4px', marginBottom: '8px', fontSize: '0.85em', color: '#666' }}>
-            {furigana.length}/30
-          </div>
+          <div className="field-count">{furigana.length}/30</div>
           <button type="submit" disabled={posting}>
             {posting ? '送信中...' : '返す'}
           </button>
         </form>
       ) : (
-        <div style={{ fontSize: '0.85em', color: '#999' }}>返しの句を詠むにはログインが必要です</div>
+        <div className="muted" style={{ marginTop: '10px' }}>返しの句を詠むにはログインが必要です</div>
       )}
     </div>
   );

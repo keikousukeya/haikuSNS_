@@ -67,24 +67,19 @@ export default function AuthModal({ onClose, onAuthenticated }: AuthModalProps) 
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit" disabled={loading}>
+          <button type="submit" className="btn-block" disabled={loading}>
             {loading ? '処理中...' : isLogin ? 'ログイン' : '登録'}
           </button>
         </form>
 
         <button
+          className="btn-ghost btn-block"
           onClick={() => {
             setIsLogin(!isLogin);
             setError('');
             setEmail('');
             setPassword('');
             setUsername('');
-          }}
-          style={{
-            width: '100%',
-            backgroundColor: 'transparent',
-            color: '#007bff',
-            border: '1px solid #007bff',
           }}
         >
           {isLogin ? '新規登録はこちら' : 'ログインはこちら'}
