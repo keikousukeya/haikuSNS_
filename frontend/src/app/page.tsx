@@ -116,23 +116,32 @@ export default function Home() {
   return (
     <div>
       <header className="header">
-        <h1>575 SNS</h1>
-        <div className="auth-section">
-          {user ? (
-            <>
-              <span style={{ cursor: 'pointer' }} onClick={() => setViewingUserId(user.id)}>
-                {user.display_name || user.username}
-              </span>
-              <button onClick={handleLogout}>ログアウト</button>
-            </>
-          ) : (
-            <button onClick={() => setShowAuth(true)}>ログイン</button>
-          )}
+        <div className="header-inner">
+          <div className="brand">
+            <div className="brand-seal" aria-hidden="true">句</div>
+            <div>
+              <h1>575 SNS</h1>
+              <div className="brand-sub">五・七・五で詠む</div>
+            </div>
+          </div>
+          <div className="auth-section">
+            {user ? (
+              <>
+                <span className="auth-name clickable" onClick={() => setViewingUserId(user.id)}>
+                  {user.display_name || user.username}
+                </span>
+                <button className="btn-ghost" onClick={handleLogout}>ログアウト</button>
+              </>
+            ) : (
+              <button onClick={() => setShowAuth(true)}>ログイン</button>
+            )}
+          </div>
         </div>
+        <div className="header-wave" aria-hidden="true" />
       </header>
 
       <div className="container">
-        {success && <div className="success">✓ {success}</div>}
+        {success && <div className="success">{success}</div>}
 
         {user && <PostForm token={user.token} onPosted={loadTimeline} />}
 
@@ -146,7 +155,7 @@ export default function Home() {
         {timelineType === 'following' && !user ? (
           <div className="empty-state">
             ログインするとフォロー中の俳人の句が見られます
-            <div style={{ marginTop: '12px' }}>
+            <div>
               <button onClick={() => setShowAuth(true)}>ログイン</button>
             </div>
           </div>

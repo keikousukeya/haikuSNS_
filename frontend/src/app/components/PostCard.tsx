@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Post, User } from '../../types';
 import CommentSection from './CommentSection';
+import HaikuText from './HaikuText';
 
 interface PostCardProps {
   post: Post;
@@ -31,7 +32,7 @@ export default function PostCard({
   return (
     <div className="post">
       <div className="post-header">
-        <div style={{ cursor: 'pointer' }} onClick={() => onOpenProfile(post.user_id)}>
+        <div className="clickable" onClick={() => onOpenProfile(post.user_id)}>
           {post.avatar_url ? (
             <img src={post.avatar_url} alt={post.username} className="avatar-img" style={{ width: 40, height: 40 }} />
           ) : (
@@ -39,10 +40,10 @@ export default function PostCard({
           )}
         </div>
         <div className="post-info">
-          <div style={{ cursor: 'pointer', fontWeight: 'bold' }} onClick={() => onOpenProfile(post.user_id)}>
+          <div className="post-name clickable" onClick={() => onOpenProfile(post.user_id)}>
             {post.display_name || post.username}
           </div>
-          <div className="post-username" style={{ cursor: 'pointer', fontSize: '0.9em' }} onClick={() => onOpenProfile(post.user_id)}>
+          <div className="post-username clickable" onClick={() => onOpenProfile(post.user_id)}>
             @{post.username}
           </div>
           <div className="post-time">{new Date(post.created_at).toLocaleString('ja-JP')}</div>
@@ -56,24 +57,21 @@ export default function PostCard({
           </button>
         )}
       </div>
-      <div className="post-content">{post.content}</div>
-      <div style={{ fontSize: '0.9em', color: '#666', marginTop: '8px', marginBottom: '10px' }}>
-        ふりがな: {post.furigana}
-      </div>
+      <HaikuText content={post.content} furigana={post.furigana} />
       <div className="post-actions">
         <button
           className={`action-btn${post.is_liked ? ' active-like' : ''}`}
           onClick={() => currentUser && onToggleLike(post)}
           disabled={!currentUser}
         >
-          🪷 座布団 {post.like_count}
+          座布団<span className="action-count">{post.like_count}</span>
         </button>
         <button
           className={`action-btn${post.is_reposted ? ' active-repost' : ''}`}
           onClick={() => currentUser && onToggleRepost(post)}
           disabled={!currentUser}
         >
-          📣 唱和 {post.repost_count}
+          唱和<span className="action-count">{post.repost_count}</span>
         </button>
         <button
           className="action-btn"
@@ -82,7 +80,7 @@ export default function PostCard({
             setHasOpenedComments(true);
           }}
         >
-          💬 返す {post.comment_count}
+          返す<span className="action-count">{post.comment_count}</span>
         </button>
       </div>
       {hasOpenedComments && (

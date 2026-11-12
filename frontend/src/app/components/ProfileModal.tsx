@@ -161,21 +161,21 @@ export default function ProfileModal({
           ×
         </span>
 
-        {error && <div className="error">❌ {error}</div>}
+        {error && <div className="error">{error}</div>}
 
         {!profile ? (
-          <div style={{ color: '#999' }}>読み込み中...</div>
+          <div className="muted">読み込み中...</div>
         ) : (
           <>
             <div className="profile-header">
               {renderAvatar(profile.avatar_url, profile.username, 56)}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 'bold' }}>{profile.display_name || profile.username}</div>
-                <div className="post-username" style={{ fontSize: '0.9em' }}>@{profile.username}</div>
-                {!editing && <div style={{ fontSize: '0.9em', color: '#666' }}>{profile.bio || '自己紹介はまだありません'}</div>}
+              <div className="post-info">
+                <div className="post-name" style={{ fontSize: '17px' }}>{profile.display_name || profile.username}</div>
+                <div className="post-username">@{profile.username}</div>
+                {!editing && <div className="profile-bio">{profile.bio || '自己紹介はまだありません'}</div>}
               </div>
               {isOwnProfile && !editing && (
-                <button onClick={() => setEditing(true)}>編集</button>
+                <button className="btn-ghost follow-btn" onClick={() => setEditing(true)}>編集</button>
               )}
               {!isOwnProfile && currentUser && (
                 <button
@@ -188,7 +188,7 @@ export default function ProfileModal({
             </div>
 
             {editing && (
-              <form onSubmit={handleSaveProfile} style={{ marginBottom: '16px' }}>
+              <form onSubmit={handleSaveProfile} style={{ marginBottom: '20px' }}>
                 <div className="hint">表示名・自己紹介・アイコンURLを編集できます（＠ID「{profile.username}」は変更できません）</div>
                 <input
                   type="text"
@@ -197,7 +197,6 @@ export default function ProfileModal({
                   placeholder="表示名"
                   maxLength={30}
                   disabled={saving}
-                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontFamily: 'inherit', fontSize: '1em' }}
                 />
                 <textarea
                   value={bioInput}
@@ -205,7 +204,7 @@ export default function ProfileModal({
                   placeholder="自己紹介"
                   maxLength={160}
                   disabled={saving}
-                  style={{ width: '100%', minHeight: '60px' }}
+                  style={{ minHeight: '60px' }}
                 />
                 <input
                   type="text"
@@ -213,21 +212,20 @@ export default function ProfileModal({
                   onChange={(e) => setAvatarUrlInput(e.target.value)}
                   placeholder="アイコン画像URL（任意）"
                   disabled={saving}
-                  style={{ width: '100%', marginTop: '8px', padding: '8px', borderRadius: '4px', border: '1px solid #ddd', fontFamily: 'inherit', fontSize: '1em' }}
                 />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <div className="form-actions">
                   <button type="submit" disabled={saving}>
                     {saving ? '保存中...' : '保存'}
                   </button>
                   <button
                     type="button"
+                    className="btn-ghost"
                     onClick={() => {
                       setEditing(false);
                       setDisplayNameInput(profile.display_name || profile.username);
                       setBioInput(profile.bio || '');
                       setAvatarUrlInput(profile.avatar_url || '');
                     }}
-                    style={{ backgroundColor: 'transparent', color: '#666', border: '1px solid #ddd' }}
                   >
                     キャンセル
                   </button>
@@ -251,18 +249,16 @@ export default function ProfileModal({
             </div>
 
             <div className="follow-list">
-              {listLoading && <div style={{ color: '#999', fontSize: '0.9em' }}>読み込み中...</div>}
-              {!listLoading && lists[activeTab]?.length === 0 && (
-                <div style={{ color: '#999', fontSize: '0.9em' }}>まだいません</div>
-              )}
+              {listLoading && <div className="muted">読み込み中...</div>}
+              {!listLoading && lists[activeTab]?.length === 0 && <div className="muted">まだいません</div>}
               {!listLoading &&
                 lists[activeTab]?.map((u) => (
                   <div key={u.id} className="follow-list-item">
-                    <div style={{ cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }} onClick={() => onOpenProfile(u.id)}>
+                    <div className="follow-list-user" onClick={() => onOpenProfile(u.id)}>
                       {renderAvatar(u.avatar_url, u.username, 32)}
-                      <div>
-                        <div style={{ fontSize: '0.95em', fontWeight: 'bold' }}>{u.display_name || u.username}</div>
-                        <span className="post-username" style={{ fontSize: '0.85em' }}>@{u.username}</span>
+                      <div className="post-info">
+                        <div className="post-name">{u.display_name || u.username}</div>
+                        <div className="post-username">@{u.username}</div>
                       </div>
                     </div>
                     {currentUser && currentUser.id !== u.id && (

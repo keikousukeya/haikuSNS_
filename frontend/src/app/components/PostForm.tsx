@@ -60,9 +60,10 @@ export default function PostForm({ token, onPosted }: PostFormProps) {
         <br />
         例：本文「古池や　かわず飛び込む　水の音」 → ふりがな「ふるいけや　かわずとびこむ　みずのおと」
       </div>
-      {error && <div className="error">❌ {error}</div>}
-      {success && <div className="success">✓ {success}</div>}
+      {error && <div className="error">{error}</div>}
+      {success && <div className="success">{success}</div>}
       <textarea
+        className="haiku-input"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="投稿する句を入力（漢字も使えます）..."
@@ -75,10 +76,9 @@ export default function PostForm({ token, onPosted }: PostFormProps) {
         placeholder="ふりがなをスペース区切りで「5・7・5」（例：ふるいけや　かわずとびこむ　みずのおと）"
         maxLength={30}
         disabled={loading}
-        style={{ marginTop: '10px', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', fontFamily: 'inherit', fontSize: '1em' }}
       />
-      <div style={{ marginTop: '5px', fontSize: '0.9em', color: '#666' }}>{furigana.length}/30</div>
-      <button type="submit" disabled={loading}>
+      <div className="field-count">{furigana.length}/30</div>
+      <button type="submit" className="btn-block" disabled={loading}>
         {loading ? '投稿中...' : '投稿する'}
       </button>
     </form>
